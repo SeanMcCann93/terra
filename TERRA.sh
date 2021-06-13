@@ -4,6 +4,7 @@
 
 TERRAINPUT1=${1}
 VERSION=${2}
+forceSet="false"
 
 terraLogo() {
     printf "\n__________________________________________    _____ \n\\__    ___/\\_   _____/\\______   \\______   \\  /  _  \\ \n  |    |    |    __)_  |       _/|       _/ /  /_\\  \\ \n  |    |    |        \\ |    |   \\|    |   \\/    |    \\ \n  |____|   /_______  / |____|_  /|____|_  /\\____|__  / \n                   \\/         \\/        \\/         \\/ \n\n"
@@ -77,21 +78,30 @@ terraInstall() {
 }
 
 terraUninstall() {
+    if [[ $(terraform --version | grep "${VERSION}") == "${VERSION}" ]]; then
+        forceSet="true"
+        terraSet
+    fi
     sudo update-alternatives --remove terraform /usr/local/terraform/${VERSION}/terraform
 }
 
 terraSet() {
-    terraList
-    TERRALISTCOUNT=$((($TERRALISTCOUNT - 1)))
-    for (( c=0; c<=$TERRALISTCOUNT; c++ ))
-    do
-        if [[ ${TERRALIST[${c}]} == *"/${VERSION}/"* ]]; then
-            TERRALISTCOUNT="$(((${c} + 1)))"
-            echo "$TERRALISTCOUNT" | sudo update-alternatives --config terraform  &> /dev/null
-            terraform --version
-            break;
-        fi
-    done
+    if [[ ${forceSet} == "true" ]]; then
+        echo "0" | sudo update-alternatives --config terraform  &> /dev/null
+        forceSet="false"
+    else
+        terraList
+        TERRALISTCOUNT=$((($TERRALISTCOUNT - 1)))
+        for (( c=0; c<=$TERRALISTCOUNT; c++ ))
+        do
+            if [[ ${TERRALIST[${c}]} == *"/${VERSION}/"* ]]; then
+                TERRALISTCOUNT="$(((${c} + 1)))"
+                echo "$TERRALISTCOUNT" | sudo update-alternatives --config terraform  &> /dev/null
+                terraform --version
+                break;
+            fi
+        done
+    fi
 }
 
 terraHelp() {
