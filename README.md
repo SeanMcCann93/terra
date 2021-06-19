@@ -1,5 +1,7 @@
 # terra
-Welcome to 'terra'. This application is designed to enable users to dynamically change between different versions of Terraform.  Adding or Setting versions has been made easy with single action command and automated search features to download/install versions without the fuss.
+Welcome to 'terra'V2, this version has a cleaner look and debug feature. This application has been developed to enable users a local way to swap and manage different versions of Terraform.
+
+To use this, follow the setup instructions bellow.
 
 ### Setup
 
@@ -8,3 +10,4 @@ Welcome to 'terra'. This application is designed to enable users to dynamically 
 > `bash addTERRA.sh`
 
 This should install 'terra' as an executable. Try 'terra -h'.
+If you need to debug what is happening you can use `export terraDebug="true"`
