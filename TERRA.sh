@@ -25,13 +25,19 @@ EOF
 }
 
 terraHelp() {
-    terraPrint Pass "Help" "Bellow is a list of actionable commands. Incorperate them with terra to perform quick actions.\n"
+    terraFlag Pass "[Help] "
+    terraFlag None "Bellow is a list of actionable commands. Incorperate them with terra to perform quick actions.\n\n"
     printf "terra "
-    terraPrint Active "Action" '[\033[0;33mVersion\033[0m]\n'
-    terraPrint Active -s "or --set is to make the desired version active. \033[0;33mVersion\033[0m can be included.\n"
-    terraPrint Active -a "or --add is to install the desired version. \033[0;33mVersion\033[0m can be included.\n"
-    terraPrint Active -d "or --del is to fully remove the desired version. \033[0;33mVersion\033[0m can be included.\n"
-    terraPrint Active -l "or --list is used to display all versions currently available.\n"
+    terraFlag Active "[Action]"
+    terraFlag None "\033[0;33m[Version]\033[0m\n\n"
+    terraFlag Active "[-s} "
+    terraFlag None "or --set is to make the desired version active. \033[0;33mVersion\033[0m can be included.\n\n"
+    terraFlag Active "[-a] " 
+    terraFlag None "or --add is to install the desired version. \033[0;33mVersion\033[0m can be included.\n\n"
+    terraFlag Active "[-d] " 
+    terraFlag None "or --del is to fully remove the desired version. \033[0;33mVersion\033[0m can be included.\n\n"
+    terraFlag Active "[-l] " 
+    terraFlag None "or --list is used to display all versions currently available.\n\n"
 }
 
 terraLeave() {
