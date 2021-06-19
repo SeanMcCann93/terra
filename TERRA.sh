@@ -213,7 +213,7 @@ terraSet() {
         elif [[ -z $(update-alternatives --list terraform | grep "${terraSaved}") ]]; then
             terraInstall "${1}"
             setFlag="Unchange"
-        elif [[ $(terraform --version | grep "${terraSaved}") ]]; then
+        elif [[ $(terraform --version -json | grep "${terraSaved}") ]]; then
             setFlag="Active"
         else
             setFlag="Pass"
