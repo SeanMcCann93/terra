@@ -34,7 +34,7 @@ terraFlag() {
     elif [[ ${1} == "Change" ]]; then
         printf "\033[0;33m%s" "${2}" # Yellow
     elif [[ ${1} == "Unchange" ]]; then
-        printf "\033[0;35m%s" "${2}" # Purple
+        printf "\e[0;95m%s" "${2}" # Purple
     elif [[ ${1} == "Active" ]]; then
         printf "\e[1;94m%s" "${2}" # High Intent Blue
     elif [[ ${1} == "System" ]]; then
@@ -47,10 +47,13 @@ terraFlag() {
 }
 
 terraDebugTool() {
-    if [[ $terraDebug == "true" ]] || [[ $1 == "Help" ]] || [[ $1 == "ERROR" ]]; then
+    if [[ $terraDebug == "true" ]] || [[ $1 == "ERROR" ]]; then
         terraFlag "${1}" "[${2}]"
         terraFlag None " ${3}"
         printf "\n\n"
+    elif [[  $1 == "Help"  ]]; then
+        terraFlag "${1}" "[${2}]"
+        terraFlag None " ${3}"
     fi
     if [[ ${4} == "leave" ]]; then
         terraLeave;
@@ -97,12 +100,42 @@ EOF
 
 terraHelp() {
     printf "terra "
-    terraDebugTool Help "Action" "\033[0;33m[Version]\033[0m \033[0;35m[Instruction]\033[0m"
-    terraDebugTool Help "-s] \033[0mor\e[1;32m [--set" "can be used to make the desired version active. \033[0;33m[Version]\033[0m can be included. \033[0;35m[-v]\033[0m or \033[0;35m[--version]\033[0m will print the vestion."
-    terraDebugTool Help "-a] \033[0mor\e[1;32m [--add" "can be used to install the desired version. \033[0;33m[Version]\033[0m can be included. \033[0;35m[-y]\033[0m will force overwite if already available."
-    terraDebugTool Help "-d] \033[0mor\e[1;32m [--del" "can be used to fully remove the desired version and folder. \033[0;33m[Version]\033[0m can be included."
-    terraDebugTool Help "-l] \033[0mor\e[1;32m [--list" "is used to display all versions currently available."
-    terraDebugTool Help "-v] \033[0mor\e[1;32m [--version" "is used to display all versions currently available."
+    terraDebugTool Help "[Action]"
+    terraFlag Change "[Version] "
+    terraFlag Unchange "[Instruction]"
+    printf "\n\n"
+
+    terraDebugTool Help "-s" "or "
+    terraDebugTool Help "--set" "can be used to make the desired version active. "
+    terraFlag Change "[Version]"
+    terraFlag None " can be included. "
+    terraFlag Unchange "[-v]"
+    terraFlag None " or "
+    terraFlag Unchange "[--version]"
+    terraFlag None " will print the version."
+    printf "\n\n"
+
+    terraDebugTool Help "-a" "or "
+    terraDebugTool Help "--add" "can be used to install the desired version. "
+    terraFlag Change "[Version]"
+    terraFlag None " can be included. " 
+    terraFlag Unchange "[-y]"
+    terraFlag None " will force overwite if already available."
+    printf "\n\n"
+    
+    terraDebugTool Help "-d" "or "
+    terraDebugTool Help "--del" "can be used to fully remove the desired version and folder. "
+    terraFlag Change "[Version]"
+    terraFlag None " can be included."
+    printf "\n\n"
+    
+    terraDebugTool Help "-l" "or "
+    terraDebugTool Help "--list" "is used to display all versions currently available."
+    printf "\n\n"
+    
+    terraDebugTool Help "-v" "or "
+    terraDebugTool Help  "--version" "is used to display all versions currently available."
+    printf "\n\n"
 }
 
 terraLeave() {
@@ -343,12 +376,19 @@ terraUninstall() {
 
 terraDebugTool System "START TERRA" "Delete list, passed."
 
-if [[ ! -d /usr/local/terraform ]]; then
+if [[ ! -d /usr/local/terraform  ]]; then
     terraDebugTool Help "SETUP TERRA" "'/usr/local/terraform' directory created to store Terraform versions."
+    printf "\n\n"
     sudo mkdir /usr/local/terraform
-    terraDebugTool Help "Welcome" "Terra is here to help you navigate Terraform Versions, Bellow are a set of tools available."
-    terraHelp
-    terraDebugTool Help "-h] \033[0mor\e[1;32m [--help" "is used to display this list again."
+    if [[ -z $terraAction ]]; then 
+        terraDebugTool Help "Welcome" "Terra is here to help you navigate Terraform Versions, Bellow are a set of tools available."
+        printf "\n\n"
+        terraHelp
+        terraDebugTool Help "-h" "or "
+        terraDebugTool Help "--help" "is used to display this list again."
+        printf "\n"
+        terraLeave
+    fi
 fi
 
 if [[ $terraAction == "-s" ]] || [[ $terraAction == "--set" ]]; then
@@ -437,13 +477,13 @@ elif [[ $terraAction == "-v" ]] || [[ $terraAction == "--version" ]]; then
     terraDebugTool Pass "TERRA VERSION" "Complete."
 elif [[ $terraAction == "--logo-toggle" ]]; then
     terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
-    if [[ $terraLogoDisp == "true" ]]; then
+    if [[ $terraLogoDisp != "false" ]]; then
         echo
-        echo "export terraLogoDisp=\"false\""
+        echo "Use 'export terraLogoDisp=\"false\"' to disable Logo printout."
         echo
     else
         echo
-        echo "export terraLogoDisp=\"true\""
+        echo "Use 'export terraLogoDisp=\"true\"' to enable Logo printout."
         echo
     fi
     terraDebugTool Pass "TERRA LOGO-DISPLAY" "Complete."
@@ -451,7 +491,10 @@ else
     terraDebugTool Fail "TERRA ACTION" "not found."
     terraLogo
     printf "Welcome to terra, this tool has been developed to enable users a\nclean way to navigate Terraform versions within a Linux system.\n\nIf you wish to take advantage of this tool, please use "
-    terraDebugTool Help "-h] \033[0mor\e[1;32m \n[--Help" "For a list of actionable commands. Incorporate them with\nterra to perform actions in a single action."
+    terraDebugTool Help "-h]" "or "
+    printf "\n"
+    terraDebugTool Help "--Help"
+    printf "for a list of actionable commands. Incorporate them with \nterra to perform actions in a single action. \n"
     terraDebugTool Pass "TERRA WELCOME" "Complete."
 fi
 terraDebugTool System "END TERRA" "Good Bye"
