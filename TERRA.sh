@@ -1,63 +1,13 @@
 #!/bin/bash
 
-# terraDebug="true"
 terraSaved=${2}
 dirList=($(ls /usr/local/terraform/))
 
-# *** General *********************************
+if [[ $1 == "--debug" ]] || [[ $2 == "--debug" ]] || [[ $3 == "--debug" ]] || [[ $4 == "--debug" ]] || [[ $5 == "--debug" ]]; then
+    terraDebug="true"
+fi
 
-terraLogo() {
-    if [[ ${terraLogoDisp} != "true" ]]; then
-        terraDebugTool Change "LOGO TASK" "Change 'terraLogoDisp' Variable to true. This will prevent the Logo being produced again.\n"
-        terraLogoDisp="true"
-        cat <<EOF
-
-    __________________________________________    _____ 
-    \__    ___/\_   _____/\______   \______   \  /  _  \   
-      |    |    |    __)_  |       _/|       _/ /  /_\  \  
-      |    |    |        \ |    |   \|    |   \/    |    \ 
-      |____|   /_______  / |____|_  /|____|_  /\____|__  / 
-                       \/         \/        \/         \/  
-
-EOF
-    else
-        terraDebugTool Unchange "LOGO TASK" "'terraLogoDisp' Variable is true, Skip logo display.\n"
-    fi
-}
-
-terraHelp() {
-    terraFlag Pass "[Help] "
-    terraFlag None "Bellow is a list of actionable commands. Incorperate them with terra to perform quick actions.\n\n"
-    printf "terra "
-    terraFlag Active "[Action] "
-    terraFlag None "\033[0;33m[Version]\033[0m\n\n"
-    terraFlag Active "[-s} "
-    terraFlag None "or --set is to make the desired version active. \033[0;33mVersion\033[0m can be included.\n\n"
-    terraFlag Active "[-a] " 
-    terraFlag None "or --add is to install the desired version. \033[0;33mVersion\033[0m can be included.\n\n"
-    terraFlag Active "[-d] " 
-    terraFlag None "or --del is to fully remove the desired version. \033[0;33mVersion\033[0m can be included.\n\n"
-    terraFlag Active "[-l] " 
-    terraFlag None "or --list is used to display all versions currently available.\n\n"
-}
-
-terraLeave() {
-    echo
-    exit 1
-}
-
-# *** General ~ END *********************************
 # *** Debug *********************************
-
-terraDebugTool() {
-    if [[ $terraDebug == "true" ]] || [[ $1 == "ERROR" ]]; then
-        terraFlag "${1}" "[${2}]"
-        terraFlag None " ${3} \n"
-    fi
-    if [[ ${4} == "leave" ]]; then
-        terraLeave;
-    fi
-}
 
 terraFlag() {
     if [[ ${1} == "ERROR" ]]; then
@@ -71,55 +21,115 @@ terraFlag() {
     elif [[ ${1} == "Unchange" ]]; then
         printf "\033[0;35m${2}" # Purple
     elif [[ ${1} == "Active" ]]; then
-        printf "\033[0;36m${2}" #Cyan
+        printf "\e[1;94m${2}" # High Intent Blue
+    elif [[ ${1} == "System" ]]; then
+        printf "\e[1;36m${2}" # B Cyan 
+    elif [[ ${1} == "Help" ]]; then
+        printf "\e[1;32m${2}" # Green
     else
         printf "\033[0m${2}" # Standard
     fi
 }
 
+terraDebugTool() {
+    if [[ $terraDebug == "true" ]] || [[ $1 == "Help" ]] || [[ $1 == "ERROR" ]]; then
+        terraFlag "${1}" "[${2}]"
+        terraFlag None " ${3} \n\n"
+    fi
+    if [[ ${4} == "leave" ]]; then
+        terraLeave;
+    fi
+}
+
 # *** Debug ~ END *********************************
+
+terraDebugTool System "START TERRA" "Welcome, Debug and Flags have loaded in."
+
 # *** Installs *********************************
 
 installUnzip() {
-    terraDebugTool Change "START TASK" "Installing Unzip.\n"
+    terraDebugTool Change "START TASK" "Installing Unzip."
     sudo apt install unzip -y || terraDebugTool ERROR "InstallFailed" "Unzip was unsuccessful." leave
     echo
-    terraDebugTool Pass "END TASK" "Install Unzip successful!.\n"
+    terraDebugTool Pass "END TASK" "Install Unzip successful!."
 }
 
 # *** Installs ~ END *********************************
+
+terraDebugTool System "START TERRA" "Installs list, passed."
+
+# *** General *********************************
+
+terraLogo() {
+    if [[ ${terraLogoDisp} != "true" ]]; then
+        terraDebugTool Change "LOGO TASK" "Change 'terraLogoDisp' Variable to true. This will prevent the Logo from being produced again."
+        terraLogoDisp="true"
+        cat <<EOF
+
+    __________________________________________    _____ 
+    \__    ___/\_   _____/\______   \______   \  /  _  \   
+      |    |    |    __)_  |       _/|       _/ /  /_\  \  
+      |    |    |        \ |    |   \|    |   \/    |    \ 
+      |____|   /_______  / |____|_  /|____|_  /\____|__  / 
+                       \/         \/        \/         \/  
+
+EOF
+    else
+        terraDebugTool Unchange "LOGO TASK" "'terraLogoDisp' Variable is true, Skip logo display."
+    fi
+}
+
+terraHelp() {
+    printf "terra "
+    terraDebugTool Help "Action" "\033[0;33m[Version]\033[0m \033[0;35m[Instruction]\033[0m"
+    terraDebugTool Help "-s] \033[0mor\e[1;32m [--set" "can be used to make the desired version active. \033[0;33m[Version]\033[0m can be included. \033[0;35m[-v]\033[0m or \033[0;35m[--version]\033[0m will print the vestion."
+    terraDebugTool Help "-a] \033[0mor\e[1;32m [--add" "can be used to install the desired version. \033[0;33m[Version]\033[0m can be included. \033[0;35m[-y]\033[0m will force overwite if already available."
+    terraDebugTool Help "-d] \033[0mor\e[1;32m [--del" "can be used to fully remove the desired version and folder. \033[0;33m[Version]\033[0m can be included."
+    terraDebugTool Help "-l] \033[0mor\e[1;32m [--list" "is used to display all versions currently available."
+    terraDebugTool Help "-v] \033[0mor\e[1;32m [--version" "is used to display all versions currently available."
+}
+
+terraLeave() {
+    echo
+    exit 1
+}
+
+# *** General ~ END *********************************
+
+terraDebugTool System "START TERRA" "General list, passed."
+
 # *** Create *********************************
 
 terraAdd() {
-    terraDebugTool Change "START TASK" "Add Terraform ${1}.\n"
+    terraDebugTool Change "START TASK" "Add Terraform ${1}."
 
     terraDownload "${1}" "linux_amd64.zip"
     terraDownload "${1}" "SHA256SUMS"
 
     sha256sum -c --ignore-missing --status "terraform_${1}_SHA256SUMS" || terraDebugTool ERROR "CHECK TASK" "Sha256sum did not match!" leave
-    terraDebugTool Pass "CHECK TASK" "Sha256sum pessed.\n"
+    terraDebugTool Pass "CHECK TASK" "Sha256sum pessed."
 
     if [[ ! -d /usr/local/terraform/${1} ]]; then
         terraDebugTool Change "CREATE TASK" "/usr/local/terraform/${1} directory.\n"
         sudo mkdir -p "/usr/local/terraform/${1}"
     else
-        terraDebugTool Unchange "CREATE TASK" "Directory at /usr/local/terraform/${1} found.\n"
+        terraDebugTool Unchange "CREATE TASK" "Directory at /usr/local/terraform/${1} found."
         while true; do
                 if [[ ${2} == "-y" ]]; then
                     yn="y"
-                    terraDebugTool Pass "CREATE TASK" "Prompt to overwrite skipped.\n"
+                    terraDebugTool Pass "CREATE TASK" "Prompt to overwrite skipped."
                 else
                     read -p "Do you wish to overwrite this directory (Y/N)? " yn # Optional Pull of git changes
                 fi
                 case $yn in
                     [Yy]* ) 
                         echo
-                        terraDebugTool Change "CREATE TASK" "Set to overwite /usr/local/terraform/${1} directory.\n"
+                        terraDebugTool Change "CREATE TASK" "Set to overwite /usr/local/terraform/${1} directory."
                         break;;
                     [Nn]* )
                         echo
-                        sudo rm -rf "terraform_${1}_linux_amd64.zip" || terraDebugTool ERROR "REMOVE TASK" "Failed to remove 'terraform_${1}_linux_amd64.zip'.\n"
-                        sudo rm -rf "terraform_${1}_SHA256SUMS" || terraDebugTool ERROR "REMOVE TASK" "Failed to remove 'terraform_${1}__SHA256SUMS'.\n"
+                        sudo rm -rf "terraform_${1}_linux_amd64.zip" || terraDebugTool ERROR "REMOVE TASK" "Failed to remove 'terraform_${1}_linux_amd64.zip'."
+                        sudo rm -rf "terraform_${1}_SHA256SUMS" || terraDebugTool ERROR "REMOVE TASK" "Failed to remove 'terraform_${1}__SHA256SUMS'."
                         terraDebugTool ERROR STOPPED "Overwrite prevented by user." leave;;
                     * ) echo "Please answer with 'y' or 'n'.";;
                 esac
@@ -127,7 +137,7 @@ terraAdd() {
     fi
 
     if [[ "$(unzip -v 2>/dev/null)" = "" ]]; then
-        terraDebugTool Fail "REQUIRED" "Unzip not found, forcing install to release .zip packages.\n"
+        terraDebugTool Fail "REQUIRED" "Unzip not found, forcing install to release .zip packages."
         installUnzip
     else
         terraDebugTool Pass "REQUIRED" "Unzip installed.\n"
@@ -136,80 +146,87 @@ terraAdd() {
     terraDebugTool Change "UNZIP TASK" "Extract files from terraform_${1}_linux_amd64.zip.\n"
     terraFlag Change
     sudo unzip -o "terraform_${1}_linux_amd64.zip" -d "/usr/local/terraform/${1}/" 1> /dev/null || terraDebugTool FERRORail "UNZIP TASK" "Failed to extract files." leave
-    terraDebugTool Pass "UNZIP TASK" "Files from terraform_${1}_linux_amd64.zip extraction successful.\n"
+    terraDebugTool Pass "UNZIP TASK" "Files from terraform_${1}_linux_amd64.zip extraction successful."
 
-    terraDebugTool Change "REMOVE TASK" "Remove unwanted files.\n"
+    terraDebugTool Change "REMOVE TASK" "Remove unwanted files."
     terraFlag Change
-    sudo rm -rf "terraform_${1}_linux_amd64.zip" || terraDebugTool ERROR sha256sum "Failed." leave
-    sudo rm -rf "terraform_${1}_SHA256SUMS" || terraDebugTool ERROR sha256sum "Failed." leave
-    terraDebugTool Pass "REMOVE TASK" "Remove files successful.\n"
+    sudo rm -rf "terraform_${1}_linux_amd64.zip" || terraDebugTool ERROR "REMOVE TASK" "Failed to remove 'terraform_${1}_linux_amd64.zip'."
+    sudo rm -rf "terraform_${1}_SHA256SUMS" || terraDebugTool ERROR "REMOVE TASK" "Failed to remove 'terraform_${1}__SHA256SUMS'."
+    terraDebugTool Pass "REMOVE TASK" "Remove files successful."
 
-    terraDebugTool Pass "END TASK" "Add Terraform ${1} successful.\n"
+    terraDebugTool Pass "END TASK" "Add Terraform ${1} successful."
     terraInstall "${1}"
 }
 
 terraDownload() {
-    terraDebugTool Change "START TASK" "Download Terraform ${2}.\n"
-    terraFlag ERROR
+    terraDebugTool Change "START TASK" "Download Terraform ${2}."
+    
+    terraFlag Fail
     curl -sSO --fail "https://releases.hashicorp.com/terraform/${1}/terraform_${1}_${2}" || terraDebugTool ERROR "FAILED TASK" "Unable to download ${2} File." leave
-    terraDebugTool Pass "END TASK" "Downloaded Terraform ${2} successful.\n"
+    
+    terraDebugTool Pass "END TASK" "Downloaded Terraform ${2} successful."
 }
 
 terraInstall() {
-    terraDebugTool Change "START TASK" "Install Terraform ${1}.\n"
+    terraDebugTool Change "START TASK" "Install Terraform ${1}."
     
     terraPriority "${1}"
-    terraDebugTool Change "INSTALL TASK" "Applying Terraform ${1} to activatable stack.\n"
+
+    terraDebugTool Change "INSTALL TASK" "Applying Terraform ${1} to activatable stack."
     terraFlag Change
     sudo update-alternatives --install /usr/local/bin/terraform terraform /usr/local/terraform/"${1}"/terraform "${PRIORITY}" || terraDebugTool ERROR "FAILED TASK" "Unable to install Terraform ${1}." leave
-    terraDebugTool Pass "END TASK" "Install Terraform ${1} successful.\n"
+    
+    terraDebugTool Pass "END TASK" "Install Terraform ${1} successful."
 }
 
 terraPriority() {
-    terraDebugTool Change "START TASK" "Resolving ${1} into priority value.\n"
+    terraDebugTool Change "START TASK" "Resolving ${1} into priority value."
 
-    terraDebugTool Change "PRIORITY TASK" "Isolate version digits into array to later be recompiled.\n"
+    terraDebugTool Change "PRIORITY TASK" "Isolate version digits into array to later be recompiled."
     IFS='.'
     for i in $1; do
         VAR+=($i)
     done
     IFS=' '
-    terraDebugTool Pass "PRIORITY TASK" "Digits isolated into Release[${VAR[0]}] Bata[${VAR[1]}] Alpha[${VAR[2]}] versions.\n"
+    terraDebugTool Pass "PRIORITY TASK" "Digits isolated into Release[${VAR[0]}] Bata[${VAR[1]}] Alpha[${VAR[2]}] versions."
 
     if [[ ${VAR[2]} -lt 10 ]]; then
-        terraDebugTool Change "PRIORITY TASK" "Alpha version is not is not in double digit values.\n"
+        terraDebugTool Change "PRIORITY TASK" "Alpha version is not is not in double digit values."
         VAR[2]="0${VAR[2]}"
     fi
     
     if [[ ${VAR[1]} -lt 10 ]]; then
-        terraDebugTool Change "PRIORITY TASK" "Beta version is not is not in double digit values.\n"
+        terraDebugTool Change "PRIORITY TASK" "Beta version is not is not in double digit values."
         VAR[1]="0${VAR[1]}"
     fi
 
     if [[ ${VAR[0]} -gt 0 ]]; then
-        terraDebugTool Change "PRIORITY TASK" "Set priority with release version.\n"
+        terraDebugTool Change "PRIORITY TASK" "Set priority with release version."
         PRIORITY="${VAR[0]}${VAR[1]}${VAR[2]}"
     else
-        terraDebugTool Change "PRIORITY TASK" "Set priority with no release version.\n"
+        terraDebugTool Change "PRIORITY TASK" "Set priority with no release version."
         PRIORITY="${VAR[1]}${VAR[2]}"
     fi
-    terraDebugTool Pass "PRIORITY TASK" "Priority resolved to ${PRIORITY}.\n"
+    terraDebugTool Pass "PRIORITY TASK" "Priority resolved to ${PRIORITY}."
 
-    terraDebugTool Change "END TASK" "Priority resolve successful.\n"
+    terraDebugTool Change "END TASK" "Priority resolve successful."
 }
 
 # *** Create ~ END *********************************
+
+terraDebugTool System "START TERRA" "Create list, passed."
+
 # *** Read *********************************
 
 terraList() {
-    terraDebugTool Change "START TASK" "Gather a list of available versions.\n"
+    terraDebugTool Change "START TASK" "Gather a list of available versions."
 
-    terraDebugTool Unchange "LIST TASK" "Get number of files in directory.\n"
+    terraDebugTool Unchange "LIST TASK" "Get number of files in directory."
     dirNum=$(ls /usr/local/terraform/ | wc -l)
-    terraDebugTool Change "LIST TASK" "Reduce value.\n"
+    terraDebugTool Change "LIST TASK" "Reduce value."
     dirNum=$((($dirNum - 1)))
 
-    terraDebugTool Change "LIST TASK" "Print all versions and highlight active.\n"
+    terraDebugTool Change "LIST TASK" "Print all versions and highlight active."
     for (( c=0; c<=$dirNum; c++ )); do
             if [[ $(terraform --version -json | grep "${dirList[${c}]}") ]]; then
                 terraFlag Active "*${dirList[${c}]}"
@@ -224,156 +241,164 @@ terraList() {
             fi
     done
 
-    terraDebugTool Pass "END TASK" "Terraform list successful.\n"
+    terraDebugTool Pass "END TASK" "Terraform list successful."
 }
 
 terraVersion() {
-    terraDebugTool Change "START TASK" "Dispaly terraform --version output.\n"
+    terraDebugTool Change "START TASK" "Dispaly terraform --version output."
     terraform --version
-    terraDebugTool Pass "END TASK" "Dispaly version output successful.\n"
+    terraDebugTool Pass "END TASK" "Dispaly version output successful."
 }
 
 # *** Read ~ END *********************************
+
+terraDebugTool System "START TERRA" "Read list, passed."
+
 # *** update *********************************
 
 terraSet() {
-    terraDebugTool Change "START TASK" "Set Terraform ${1}.\n"
+    terraDebugTool Change "START TASK" "Set Terraform ${1}."
     if [[ ${1} == "auto" ]]; then
-        terraDebugTool Change "SET TASK" "Set Terraform to ${1}.\n"
+        terraDebugTool Change "SET TASK" "Set Terraform to ${1}."
         terraFlag Change
         sudo update-alternatives --auto terraform
     else
         if [[ ! -d /usr/local/terraform/${1} ]]; then
-            terraDebugTool Fail "SET TASK" "Version is not installed.\n"
+            terraDebugTool Fail "SET TASK" "Version is not installed."
             terraAdd "${1}"
             setFlag="Change"
         elif [[ -z $(update-alternatives --list terraform | grep "${terraSaved}") ]]; then
-            terraDebugTool Fail "SET TASK" "Version directory found but not installed.\n"
+            terraDebugTool Fail "SET TASK" "Version directory found but not installed."
             terraInstall "${1}"
             setFlag="Change"
         elif [[ $(terraform --version -json | grep "${terraSaved}") ]]; then
-            terraDebugTool Active "SET TASK" "Version is already active.\n"
+            terraDebugTool Active "SET TASK" "Version is already active."
             setFlag="Unchange"
         else
             setFlag="Pass"
         fi
 
         if [[  $setFlag !=  "Unchange" ]]; then
-            terraDebugTool "${setFlag}" "SET TASK" "Set to Terraform ${1}.\n"
+            terraDebugTool "${setFlag}" "SET TASK" "Set to Terraform ${1}."
             sudo update-alternatives --set terraform "/usr/local/terraform/${1}/terraform" &> /dev/null || terraDebugTool ERROR "SET TASK" "To ${1} was not Successful." leave
         fi
     fi
     if [[  $2 == -v  ]] || [[  $2 == --version  ]]; then
-        terraDebugTool Unchange "SET TASK" "Version request found.\n"
+        terraDebugTool Unchange "SET TASK" "Version request found."
         terraVersion
     fi
-    terraDebugTool Pass "END TASK" "Set Terraform ${1} successful.\n"
+    terraDebugTool Pass "END TASK" "Set Terraform ${1} successful."
 }
 
 # *** Update ~ END *********************************
+
+terraDebugTool System "START TERRA" "Update list, passed."
+
 # *** Delete *********************************
 
 terraDelete() {
-    terraDebugTool Pass "START TASK" "Delete Terraform ${1}.\n"
+    terraDebugTool Pass "START TASK" "Delete Terraform ${1}."
     
     if [[ $(update-alternatives --list terraform | grep "${terraSaved}") ]]; then
-        terraDebugTool Fail "DELETE TASK" "Terraform ${1} is active in version stack.\n"
+        terraDebugTool Fail "DELETE TASK" "Terraform ${1} is active in version stack."
         terraUninstall "${1}"
     fi
 
-    terraDebugTool Change "DELETE TASK" "Delete /usr/local/terraform/${1} directory and its contents.\n"
+    terraDebugTool Change "DELETE TASK" "Delete /usr/local/terraform/${1} directory and its contents."
     sudo rm -rf "/usr/local/terraform/${1}" || terraDebugTool ERROR "DELETE TASK" "Unable to delete /usr/local/terraform/${1} for system." leave
 
-    terraDebugTool Pass "END TASK" "Terraform ${1} delete successful.\n"
+    terraDebugTool Pass "END TASK" "Terraform ${1} delete successful."
 }
 
 terraUninstall() {
-    terraDebugTool Change "START TASK" "uninstall Terraform ${1}.\n"
+    terraDebugTool Change "START TASK" "uninstall Terraform ${1}."
     
-    terraDebugTool Change "UNINSTALL TASK" "Uninstall Terraform ${1} from version stack.\n"
+    terraDebugTool Change "UNINSTALL TASK" "Uninstall Terraform ${1} from version stack."
     if [[ $(terraform --version | grep "${terraSaved}" ) ]]; then
-        terraDebugTool Fail "UNINSTALL TASK" "Terraform ${1} is active.\n"
+        terraDebugTool Fail "UNINSTALL TASK" "Terraform ${1} is active."
         terraSet "auto"
     fi
     terraFlag Change
     sudo update-alternatives --remove terraform "/usr/local/terraform/${1}/terraform" || terraDebugTool ERROR "UNINSTALL TASK" "Terraform ${1} version failed to uninstall." leave
 
-    terraDebugTool Pass "END TASK" "Terraform ${1} uninstall successful!.\n"
+    terraDebugTool Pass "END TASK" "Terraform ${1} uninstall successful!."
 }
 
 # *** Delete ~ END *********************************
 
-terraDebugTool Change "START TERRA" "Welcome\n"
+terraDebugTool System "START TERRA" "Delete list, passed."
 
 if [[ ! -d /usr/local/terraform ]]; then
-    terraDebugTool Change "SETUP TERRA" "'/usr/local/terraform' directory created to store Terraform versions.\n"
+    terraDebugTool Help "SETUP TERRA" "'/usr/local/terraform' directory created to store Terraform versions."
     sudo mkdir /usr/local/terraform
-    terraDebugTool Pass "SETUP TERRA" "'/usr/local/terraform' directory create successful!\n"
+    terraDebugTool Help "Welcome" "Terra is here to help you navigate Terraform Versions, Bellow are a set of tools available."
+    terraHelp
+    terraDebugTool Help "-h] \033[0mor\e[1;32m [--help" "is used to display this list again."
 fi
 
 if [[ $1 == "-s" ]] || [[ $1 == "--set" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used.\n"
+    terraDebugTool Pass "TERRA ACTION" "${1} used."
     if [[ -z $terraSaved ]]; then
-        terraDebugTool Unchange "TERRA SET" "Version value not present.\n"
+        terraDebugTool Unchange "TERRA SET" "Version value not present."
         terraLogo
         while true; do
             read -p "Please enter the Terraform version: " terraSaved
             case $terraSaved in
                 '' ) 
-                    terraDebugTool Unchange "TERRA SET" "Value entered is '${terraSaved}'.\n"
+                    terraDebugTool Unchange "TERRA SET" "Value entered is '${terraSaved}'."
                     echo "A value must exist!";;
                 help )
-                    terraDebugTool Unchange "TERRA SET" "Display '${terraSaved}' for terraSet.\n"
+                    terraDebugTool Unchange "TERRA SET" "Display '${terraSaved}' for terraSet."
                     printf "\nAvailable versions to set:\n\n"
                     terraList
                     printf "To Set a version it must first be installed. A list of\nversions that can be installed are found at:\n\n    https://releases.hashicorp.com/terraform    \n\nFind the desired version and input its version number here.\n Example: '0.00.00'\n\n";;
                 * )
-                    terraDebugTool Change "TERRA SET" "Value '${terraSaved}' approved.\n"
+                    terraDebugTool Change "TERRA SET" "Value '${terraSaved}' approved."
                     break;;
             esac
         done
     fi
     terraSet "${terraSaved}" "${3}"
-    terraDebugTool Pass "TERRA SET" "Complete.\n"
+    terraDebugTool Pass "TERRA SET" "Complete."
 elif [[ $1 == "-a" ]] || [[ $1 == "--add" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used.\n"
+    terraDebugTool Pass "TERRA ACTION" "${1} used."
     if [[ -z $terraSaved ]]; then
-        terraDebugTool Fail Version "not found.\n"
+        terraDebugTool Fail Version "not found."
         terraLogo
         while true; do
             read -p "Please enter the Terraform version: " terraSaved
             case $terraSaved in
                 '' ) 
-                    terraDebugTool Unchange "TERRA ADD" "Value entered is '${terraSaved}'.\n"
+                    terraDebugTool Unchange "TERRA ADD" "Value entered is '${terraSaved}'."
                     echo "A value must exist!";;
                 help )
-                    terraDebugTool Unchange "TERRA ADD" "Display '${terraSaved}' for terraAdd.\n"
+                    terraDebugTool Unchange "TERRA ADD" "Display '${terraSaved}' for terraAdd."
                     printf "\nTo take advantage of this application it helps to know what\nversions are available. A list of versions can be found at:\n\n    https://releases.hashicorp.com/terraform    \n\nFind the desired version and input its version number here.\n Example: '0.00.00'\n\n";;
                 * )
-                    terraDebugTool Change "TERRA ADD" "Value '${terraSaved}' approved.\n"
+                    terraDebugTool Change "TERRA ADD" "Value '${terraSaved}' approved."
                     break;;
             esac
         done
     fi
     terraAdd "$terraSaved" "$3"
-    terraDebugTool Pass "TERRA ADD" "Complete.\n"
+    terraDebugTool Pass "TERRA ADD" "Complete."
 elif [[ $1 == "-d" ]] || [[ $1 == "--del" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used.\n"
+    terraDebugTool Pass "TERRA ACTION" "${1} used."
     if [[ -z $terraSaved ]]; then
-        terraDebugTool Fail Version "not found.\n"
+        terraDebugTool Fail Version "not found."
         terraLogo
         while true; do
             read -p "Please enter the Terraform version: " terraSaved
             case $terraSaved in
                 '' ) 
-                    terraDebugTool Unchange "TERRA DELETE" "Value entered is '${terraSaved}'.\n"
+                    terraDebugTool Unchange "TERRA DELETE" "Value entered is '${terraSaved}'."
                     echo "A value must exist!";;
                 help )
-                    terraDebugTool Unchange "TERRA DELETE" "Display '${terraSaved}' for terraDelete.\n"
+                    terraDebugTool Unchange "TERRA DELETE" "Display '${terraSaved}' for terraDelete."
                     printf "\nPlease see bellow a list of versions available to delete.\n\n"
                     terraList;;
                 * )
-                    terraDebugTool Change "TERRA DELETE" "Value '${terraSaved}' approved.\n"
+                    terraDebugTool Change "TERRA DELETE" "Value '${terraSaved}' approved."
                     break;;
             esac
         done
@@ -381,24 +406,25 @@ elif [[ $1 == "-d" ]] || [[ $1 == "--del" ]]; then
     terraDelete "$terraSaved"
     terraDebugTool Pass "TERRA DELETE" "Complete.\n"
 elif [[ $1 == "-l" ]] || [[ $1 == "--list" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used.\n"
+    terraDebugTool Pass "TERRA ACTION" "${1} used."
     terraLogo
     terraList
-    terraDebugTool Pass "TERRA LIST" "Complete.\n"
+    terraDebugTool Pass "TERRA LIST" "Complete."
 elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used.\n"
+    terraDebugTool Pass "TERRA ACTION" "${1} used."
     terraLogo
     terraHelp
-    terraDebugTool Pass "TERRA HELP" "Complete.\n"
+    terraDebugTool Pass "TERRA HELP" "Complete."
 elif [[ $1 == "-v" ]] || [[ $1 == "--version" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used.\n"
+    terraDebugTool Pass "TERRA ACTION" "${1} used."
     terraLogo
     terraVersion
-    terraDebugTool Pass "TERRA VERSION" "Complete.\n"
+    terraDebugTool Pass "TERRA VERSION" "Complete."
 else
-    terraDebugTool Fail "TERRA ACTION" "not found.\n"
+    terraDebugTool Fail "TERRA ACTION" "not found."
     terraLogo
-    printf "Welcome to terra, this tool has been developed to enable users a\nclean way to navigate Terraform versions within a Linux system.\n\nIf you wish to take advantage of this tool, please use the\n\033[0;32m[-h]\033[0m or --help extension to display all commands available.\n\n"
-    terraDebugTool Pass "TERRA WELCOME" "Complete.\n"
+    printf "Welcome to terra, this tool has been developed to enable users a\nclean way to navigate Terraform versions within a Linux system.\n\nIf you wish to take advantage of this tool, please use "
+    terraDebugTool Help "-h] \033[0mor\e[1;32m \n[--Help" "For a list of actionable commands. Incorporate them with\nterra to perform actions in a single action."
+    terraDebugTool Pass "TERRA WELCOME" "Complete."
 fi
-terraDebugTool Change "END TERRA" "Good Bye\n"
+terraDebugTool System "END TERRA" "Good Bye"
