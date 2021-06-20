@@ -381,6 +381,7 @@ if [[ ! -d /usr/local/terraform  ]]; then
     printf "\n\n"
     sudo mkdir /usr/local/terraform
     if [[ -z $terraAction ]]; then 
+        terraLogo
         terraDebugTool Help "Welcome" "Terra is here to help you navigate Terraform Versions, Bellow are a set of tools available."
         printf "\n\n"
         terraHelp
