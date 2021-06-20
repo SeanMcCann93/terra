@@ -68,9 +68,16 @@ terraDebugTool System "START TERRA" "Welcome, Debug and Flags have loaded in."
 
 installUnzip() {
     terraDebugTool Change "START TASK" "Installing Unzip."
-    sudo apt install unzip -y || terraDebugTool ERROR "InstallFailed" "Unzip was unsuccessful." leave
+    sudo apt install unzip -y || terraDebugTool ERROR "InstallFailed" "Unzip install was unsuccessful." leave
     echo
     terraDebugTool Pass "END TASK" "Install Unzip successful!."
+}
+
+installCurl() {
+    terraDebugTool Change "START TASK" "Installing Curl."
+    sudo apt install curl -y || terraDebugTool ERROR "InstallFailed" "Curl install was unsuccessful." leave
+    echo
+    terraDebugTool Pass "END TASK" "Install Curl successful!."
 }
 
 # *** Installs ~ END *********************************
@@ -100,7 +107,7 @@ EOF
 
 terraHelp() {
     printf "terra "
-    terraDebugTool Help "[Action]"
+    terraDebugTool Help "Action"
     terraFlag Change "[Version] "
     terraFlag Unchange "[Instruction]"
     printf "\n\n"
@@ -139,7 +146,6 @@ terraHelp() {
 }
 
 terraLeave() {
-    echo
     exit 1
 }
 
@@ -208,7 +214,14 @@ terraAdd() {
 
 terraDownload() {
     terraDebugTool Change "START TASK" "Download Terraform ${2}."
-    
+
+    if [[ "$(curl --version 2>/dev/null)" = "" ]]; then
+        terraDebugTool Fail "REQUIRED" "Curl not found, forcing install to download files."
+        installCurl
+    else
+        terraDebugTool Pass "REQUIRED" "Curl installed."
+    fi
+
     terraFlag Fail
     curl -sSO --fail "https://releases.hashicorp.com/terraform/${1}/terraform_${1}_${2}" || terraDebugTool ERROR "FAILED TASK" "Unable to download ${2} File." leave
     
@@ -276,9 +289,12 @@ terraList() {
 
     terraDebugTool Change "LIST TASK" "Print all versions and highlight active."
     for (( c=0; c<=dirNum; c++ )); do
-            if terraform --version -json | grep "${dirList[${c}]}"; then
-                terraFlag Active "*${dirList[${c}]}"
+            if [[  $terraVerFound == "true"  ]]; then
+                printf "%s" "${dirList[${c}]}"
+            elif terraform --version | grep "${dirList[${c}]}" &>/dev/null; then
+                terraFlag Active "${dirList[${c}]}"
                 terraFlag None
+                terraVerFound="true"
             else
                 printf "%s" "${dirList[${c}]}"
             fi
@@ -294,6 +310,7 @@ terraList() {
 
 terraVersion() {
     terraDebugTool Change "START TASK" "Dispaly terraform --version output."
+    terraFlag "${setFlag}"
     terraform --version
     terraDebugTool Pass "END TASK" "Dispaly version output successful."
 }
@@ -347,7 +364,7 @@ terraDebugTool System "START TERRA" "Update list, passed."
 terraDelete() {
     terraDebugTool Pass "START TASK" "Delete Terraform ${1}."
     
-    if update-alternatives --list terraform | grep "${terraSaved}"; then
+    if update-alternatives --list terraform | grep "${terraSaved}" &>/dev/null; then
         terraDebugTool Fail "DELETE TASK" "Terraform ${1} is active in version stack."
         terraUninstall "${1}"
     fi
@@ -362,7 +379,7 @@ terraUninstall() {
     terraDebugTool Change "START TASK" "uninstall Terraform ${1}."
     
     terraDebugTool Change "UNINSTALL TASK" "Uninstall Terraform ${1} from version stack."
-    if terraform --version | grep "${terraSaved}"; then
+    if terraform --version -json | grep "${terraSaved}" &>/dev/null; then
         terraDebugTool Fail "UNINSTALL TASK" "Terraform ${1} is active."
         terraSet "auto"
     fi
@@ -382,7 +399,7 @@ if [[ ! -d /usr/local/terraform  ]]; then
     sudo mkdir /usr/local/terraform
     if [[ -z $terraAction ]]; then 
         terraLogo
-        terraDebugTool Help "Welcome" "Terra is here to help you navigate Terraform Versions, Bellow are a set of tools available."
+        terraDebugTool Help "Welcome" "Terra is here to help you navigate Terraform Versions, bellow are a set of tools available."
         printf "\n\n"
         terraHelp
         terraDebugTool Help "-h" "or "
@@ -398,16 +415,19 @@ if [[ $terraAction == "-s" ]] || [[ $terraAction == "--set" ]]; then
         terraDebugTool Unchange "TERRA SET" "Version value not present."
         terraLogo
         while true; do
-            read -r -p "Please enter the Terraform version: " terraSaved
+            read -r -p "Please enter the Terraform version: " terraSaved terraInstruction
             case $terraSaved in
                 '' ) 
                     terraDebugTool Unchange "TERRA SET" "Value entered is '${terraSaved}'."
-                    echo "A value must exist!";;
+                    printf "\nA value must exist! Use \e[1;32mhelp\033[0m if you require assistance.\n\n";;
                 help )
                     terraDebugTool Unchange "TERRA SET" "Display '${terraSaved}' for terraSet."
                     printf "\nAvailable versions to set:\n\n"
                     terraList
-                    printf "To Set a version it must first be installed. A list of\nversions that can be installed are found at:\n\n    https://releases.hashicorp.com/terraform    \n\nFind the desired version and input its version number here.\n Example: '0.00.00'\n\n";;
+                    printf "To Set a version it must first be installed. A list of\nversions that can be installed are found at:\n\n    \e[1;32mhttps://releases.hashicorp.com/terraform\033[0m    \n\nFind the desired version and input its version number here.\n\nExample: '\033[0;33m0.00.00\033[0m'\n\nUse \e[0;95m-v\033[0m or \e[0;95m--version\033[0m to display the version readout once set.\n\n";;
+                exit ) 
+                    echo
+                    terraDebugTool ERROR STOPPED "Aborted by user." leave;;
                 * )
                     terraDebugTool Change "TERRA SET" "Value '${terraSaved}' approved."
                     break;;
@@ -422,14 +442,17 @@ elif [[ $terraAction == "-a" ]] || [[ $terraAction == "--add" ]]; then
         terraDebugTool Fail Version "not found."
         terraLogo
         while true; do
-            read -r -p "Please enter the Terraform version: " terraSaved
+            read -r -p "Please enter the Terraform version: " terraSaved terraInstruction
             case $terraSaved in
                 '' ) 
                     terraDebugTool Unchange "TERRA ADD" "Value entered is '${terraSaved}'."
-                    echo "A value must exist!";;
+                    printf "\nA value must exist! Use \e[1;32mhelp\033[0m if you require assistance.\n\n";;
                 help )
                     terraDebugTool Unchange "TERRA ADD" "Display '${terraSaved}' for terraAdd."
-                    printf "\nTo take advantage of this application it helps to know what\nversions are available. A list of versions can be found at:\n\n    https://releases.hashicorp.com/terraform    \n\nFind the desired version and input its version number here.\n Example: '0.00.00'\n\n";;
+                    printf "\nTo take advantage of this application it helps to know what\nversions are available. A list of versions can be found at:\n\n    \e[1;32mhttps://releases.hashicorp.com/terraform\033[0m    \n\nFind the desired version and input its version number here.\n\nExample: '\033[0;33m0.00.00\033[0m'\n\nUse \e[0;95m-y\033[0m to force overwire if applicable.\n\n";;
+                exit ) 
+                    echo
+                    terraDebugTool ERROR STOPPED "Aborted by user." leave;;
                 * )
                     terraDebugTool Change "TERRA ADD" "Value '${terraSaved}' approved."
                     break;;
@@ -448,11 +471,14 @@ elif [[ $terraAction == "-d" ]] || [[ $terraAction == "--del" ]]; then
             case $terraSaved in
                 '' ) 
                     terraDebugTool Unchange "TERRA DELETE" "Value entered is '${terraSaved}'."
-                    echo "A value must exist!";;
+                    printf "A value must exist! Use \e[1;32mhelp\033[0m if you require assistance.\n";;
                 help )
                     terraDebugTool Unchange "TERRA DELETE" "Display '${terraSaved}' for terraDelete."
                     printf "\nPlease see bellow a list of versions available to delete.\n\n"
                     terraList;;
+                exit ) 
+                    echo
+                    terraDebugTool ERROR STOPPED "Aborted by user." leave;;
                 * )
                     terraDebugTool Change "TERRA DELETE" "Value '${terraSaved}' approved."
                     break;;
