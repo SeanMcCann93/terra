@@ -449,7 +449,7 @@ elif [[ $terraAction == "-a" ]] || [[ $terraAction == "--add" ]]; then
                     printf "\nA value must exist! Use \e[1;32mhelp\033[0m if you require assistance.\n\n";;
                 help )
                     terraDebugTool Unchange "TERRA ADD" "Display '${terraSaved}' for terraAdd."
-                    printf "\nTo take advantage of this application it helps to know what\nversions are available. A list of versions can be found at:\n\n    \e[1;32mhttps://releases.hashicorp.com/terraform\033[0m    \n\nFind the desired version and input its version number here.\n\nExample: '\033[0;33m0.00.00\033[0m'\n\nUse \e[0;95m-y\033[0m to force overwire if applicable.\n\n";;
+                    printf "\nTo take advantage of this application it helps to know what\nversions are available. A list of versions can be found at:\n\n    \e[1;32mhttps://releases.hashicorp.com/terraform\033[0m    \n\nFind the desired version and input its version number here.\n\nExample: '\033[0;33m0.00.00\033[0m'\n\nUse \e[0;95m-y\033[0m to force overwire if applicable.\n\n";; # Made By Sean David McCann
                 exit ) 
                     echo
                     terraDebugTool ERROR STOPPED "Aborted by user." leave;;
