@@ -1,40 +1,56 @@
 #!/bin/bash
 
-terraSaved=${2}
-dirList=($(ls /usr/local/terraform/))
+mapfile -t dirList < <(ls /usr/local/terraform/ -1)
 
-if [[ $1 == "--debug" ]] || [[ $2 == "--debug" ]] || [[ $3 == "--debug" ]] || [[ $4 == "--debug" ]] || [[ $5 == "--debug" ]]; then
+if [[ $1 == "--debug" ]]; then
     terraDebug="true"
+elif [[ $2 == "--debug" ]]; then
+    terraDebug="true"
+    terraAction=${1}
+elif [[ $3 == "--debug" ]]; then
+    terraDebug="true"
+    terraAction=${1}
+    terraSaved=${2}
+elif [[ $4 == "--debug" ]]; then
+    terraDebug="true"
+    terraAction=${1}
+    terraSaved=${2}
+    terraInstruction=${3}
+else
+    terraAction=${1}
+    terraSaved=${2}
+    terraInstruction=${3}
 fi
 
 # *** Debug *********************************
 
 terraFlag() {
     if [[ ${1} == "ERROR" ]]; then
-        printf "\e[1;31m${2}" #Red
+        printf "\e[1;31m%s" "${2}" #Red
     elif [[ ${1} == "Pass" ]]; then
-        printf "\033[0;32m${2}" # Green
+        printf "\033[0;32m%s" "${2}" # Green
     elif [[ ${1} == "Fail" ]]; then
-        printf "\e[0;31m${2}" # Red
+        printf "\e[0;31m%s" "${2}" # Red
     elif [[ ${1} == "Change" ]]; then
-        printf "\033[0;33m${2}" # Yellow
+        printf "\033[0;33m%s" "${2}" # Yellow
     elif [[ ${1} == "Unchange" ]]; then
-        printf "\033[0;35m${2}" # Purple
+        printf "\033[0;35m%s" "${2}" # Purple
     elif [[ ${1} == "Active" ]]; then
-        printf "\e[1;94m${2}" # High Intent Blue
+        printf "\e[1;94m%s" "${2}" # High Intent Blue
     elif [[ ${1} == "System" ]]; then
-        printf "\e[1;36m${2}" # B Cyan 
+        printf "\e[1;36m%s" "${2}" # B Cyan 
     elif [[ ${1} == "Help" ]]; then
-        printf "\e[1;32m${2}" # Green
+        printf "\e[1;32m%s" "${2}" # Green
     else
-        printf "\033[0m${2}" # Standard
+        printf "\033[0m%s" "${2}" # Standard
     fi
 }
 
 terraDebugTool() {
     if [[ $terraDebug == "true" ]] || [[ $1 == "Help" ]] || [[ $1 == "ERROR" ]]; then
         terraFlag "${1}" "[${2}]"
-        terraFlag None " ${3} \n\n"
+        terraFlag None " ${3}"
+        printf "\n\n"
     fi
     if [[ ${4} == "leave" ]]; then
         terraLeave;
@@ -61,9 +77,9 @@ terraDebugTool System "START TERRA" "Installs list, passed."
 # *** General *********************************
 
 terraLogo() {
-    if [[ ${terraLogoDisp} != "true" ]]; then
+    if [[ ${terraLogoDisp} != "false" ]]; then
         terraDebugTool Change "LOGO TASK" "Change 'terraLogoDisp' Variable to true. This will prevent the Logo from being produced again."
-        terraLogoDisp="true"
+        terraLogoDisp="false"
         cat <<EOF
 
     __________________________________________    _____ 
@@ -75,7 +91,7 @@ terraLogo() {
 
 EOF
     else
-        terraDebugTool Unchange "LOGO TASK" "'terraLogoDisp' Variable is true, Skip logo display."
+        terraDebugTool Unchange "LOGO TASK" "'terraLogoDisp' Variable is false, Skip logo display."
     fi
 }
 
@@ -119,11 +135,10 @@ terraAdd() {
                     yn="y"
                     terraDebugTool Pass "CREATE TASK" "Prompt to overwrite skipped."
                 else
-                    read -p "Do you wish to overwrite this directory (Y/N)? " yn # Optional Pull of git changes
+                    read -r -p "Do you wish to overwrite this directory (Y/N)? " yn # Optional Pull of git changes
                 fi
                 case $yn in
                     [Yy]* ) 
-                        echo
                         terraDebugTool Change "CREATE TASK" "Set to overwite /usr/local/terraform/${1} directory."
                         break;;
                     [Nn]* )
@@ -185,7 +200,7 @@ terraPriority() {
     terraDebugTool Change "PRIORITY TASK" "Isolate version digits into array to later be recompiled."
     IFS='.'
     for i in $1; do
-        VAR+=($i)
+        VAR+=( "$i" )
     done
     IFS=' '
     terraDebugTool Pass "PRIORITY TASK" "Digits isolated into Release[${VAR[0]}] Bata[${VAR[1]}] Alpha[${VAR[2]}] versions."
@@ -222,19 +237,19 @@ terraList() {
     terraDebugTool Change "START TASK" "Gather a list of available versions."
 
     terraDebugTool Unchange "LIST TASK" "Get number of files in directory."
-    dirNum=$(ls /usr/local/terraform/ | wc -l)
+    dirNum=${#dirList[@]}
     terraDebugTool Change "LIST TASK" "Reduce value."
-    dirNum=$((($dirNum - 1)))
+    dirNum=$(((dirNum - 1)))
 
     terraDebugTool Change "LIST TASK" "Print all versions and highlight active."
-    for (( c=0; c<=$dirNum; c++ )); do
-            if [[ $(terraform --version -json | grep "${dirList[${c}]}") ]]; then
+    for (( c=0; c<=dirNum; c++ )); do
+            if terraform --version -json | grep "${dirList[${c}]}"; then
                 terraFlag Active "*${dirList[${c}]}"
                 terraFlag None
             else
-                printf "${dirList[${c}]}"
+                printf "%s" "${dirList[${c}]}"
             fi
-            if [[ $c != $dirNum ]]; then
+            if [[ $c != "$dirNum" ]]; then
                 printf "\n"
             else
                 printf "\n\n"
@@ -267,11 +282,11 @@ terraSet() {
             terraDebugTool Fail "SET TASK" "Version is not installed."
             terraAdd "${1}"
             setFlag="Change"
-        elif [[ -z $(update-alternatives --list terraform | grep "${terraSaved}") ]]; then
+        elif ! update-alternatives --list terraform | grep "${terraSaved}" &> /dev/null; then
             terraDebugTool Fail "SET TASK" "Version directory found but not installed."
             terraInstall "${1}"
             setFlag="Change"
-        elif [[ $(terraform --version -json | grep "${terraSaved}") ]]; then
+        elif terraform --version -json | grep "${terraSaved}" &> /dev/null; then
             terraDebugTool Active "SET TASK" "Version is already active."
             setFlag="Unchange"
         else
@@ -299,7 +314,7 @@ terraDebugTool System "START TERRA" "Update list, passed."
 terraDelete() {
     terraDebugTool Pass "START TASK" "Delete Terraform ${1}."
     
-    if [[ $(update-alternatives --list terraform | grep "${terraSaved}") ]]; then
+    if update-alternatives --list terraform | grep "${terraSaved}"; then
         terraDebugTool Fail "DELETE TASK" "Terraform ${1} is active in version stack."
         terraUninstall "${1}"
     fi
@@ -314,7 +329,7 @@ terraUninstall() {
     terraDebugTool Change "START TASK" "uninstall Terraform ${1}."
     
     terraDebugTool Change "UNINSTALL TASK" "Uninstall Terraform ${1} from version stack."
-    if [[ $(terraform --version | grep "${terraSaved}" ) ]]; then
+    if terraform --version | grep "${terraSaved}"; then
         terraDebugTool Fail "UNINSTALL TASK" "Terraform ${1} is active."
         terraSet "auto"
     fi
@@ -336,13 +351,13 @@ if [[ ! -d /usr/local/terraform ]]; then
     terraDebugTool Help "-h] \033[0mor\e[1;32m [--help" "is used to display this list again."
 fi
 
-if [[ $1 == "-s" ]] || [[ $1 == "--set" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used."
+if [[ $terraAction == "-s" ]] || [[ $terraAction == "--set" ]]; then
+    terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
     if [[ -z $terraSaved ]]; then
         terraDebugTool Unchange "TERRA SET" "Version value not present."
         terraLogo
         while true; do
-            read -p "Please enter the Terraform version: " terraSaved
+            read -r -p "Please enter the Terraform version: " terraSaved
             case $terraSaved in
                 '' ) 
                     terraDebugTool Unchange "TERRA SET" "Value entered is '${terraSaved}'."
@@ -358,15 +373,15 @@ if [[ $1 == "-s" ]] || [[ $1 == "--set" ]]; then
             esac
         done
     fi
-    terraSet "${terraSaved}" "${3}"
+    terraSet "${terraSaved}" "${terraInstruction}"
     terraDebugTool Pass "TERRA SET" "Complete."
-elif [[ $1 == "-a" ]] || [[ $1 == "--add" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used."
+elif [[ $terraAction == "-a" ]] || [[ $terraAction == "--add" ]]; then
+    terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
     if [[ -z $terraSaved ]]; then
         terraDebugTool Fail Version "not found."
         terraLogo
         while true; do
-            read -p "Please enter the Terraform version: " terraSaved
+            read -r -p "Please enter the Terraform version: " terraSaved
             case $terraSaved in
                 '' ) 
                     terraDebugTool Unchange "TERRA ADD" "Value entered is '${terraSaved}'."
@@ -380,15 +395,15 @@ elif [[ $1 == "-a" ]] || [[ $1 == "--add" ]]; then
             esac
         done
     fi
-    terraAdd "$terraSaved" "$3"
+    terraAdd "$terraSaved" "$terraInstruction"
     terraDebugTool Pass "TERRA ADD" "Complete."
-elif [[ $1 == "-d" ]] || [[ $1 == "--del" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used."
-    if [[ -z $terraSaved ]]; then
+elif [[ $terraAction == "-d" ]] || [[ $terraAction == "--del" ]]; then
+    terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
+    if [[ -z $terraSaved ]] || [[ $terraSaved == "--debug" ]]; then
         terraDebugTool Fail Version "not found."
         terraLogo
         while true; do
-            read -p "Please enter the Terraform version: " terraSaved
+            read -r -p "Please enter the Terraform version: " terraSaved
             case $terraSaved in
                 '' ) 
                     terraDebugTool Unchange "TERRA DELETE" "Value entered is '${terraSaved}'."
@@ -405,21 +420,33 @@ elif [[ $1 == "-d" ]] || [[ $1 == "--del" ]]; then
     fi
     terraDelete "$terraSaved"
     terraDebugTool Pass "TERRA DELETE" "Complete.\n"
-elif [[ $1 == "-l" ]] || [[ $1 == "--list" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used."
+elif [[ $terraAction == "-l" ]] || [[ $terraAction == "--list" ]]; then
+    terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
     terraLogo
     terraList
     terraDebugTool Pass "TERRA LIST" "Complete."
-elif [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used."
+elif [[ $terraAction == "-h" ]] || [[ $terraAction == "--help" ]]; then
+    terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
     terraLogo
     terraHelp
     terraDebugTool Pass "TERRA HELP" "Complete."
-elif [[ $1 == "-v" ]] || [[ $1 == "--version" ]]; then
-    terraDebugTool Pass "TERRA ACTION" "${1} used."
+elif [[ $terraAction == "-v" ]] || [[ $terraAction == "--version" ]]; then
+    terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
     terraLogo
     terraVersion
     terraDebugTool Pass "TERRA VERSION" "Complete."
+elif [[ $terraAction == "--logo-toggle" ]]; then
+    terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
+    if [[ $terraLogoDisp == "true" ]]; then
+        echo
+        echo "export terraLogoDisp=\"false\""
+        echo
+    else
+        echo
+        echo "export terraLogoDisp=\"true\""
+        echo
+    fi
+    terraDebugTool Pass "TERRA LOGO-DISPLAY" "Complete."
 else
     terraDebugTool Fail "TERRA ACTION" "not found."
     terraLogo
