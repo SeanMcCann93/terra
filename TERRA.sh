@@ -26,7 +26,7 @@ fi
 
 terraFlag() {
     if [[ ${1} == "ERROR" ]]; then
-        printf "\e[1;31m%s" "${2}" #Red
+        printf "\e[1;31m%s" "${2}" # B Red
     elif [[ ${1} == "Pass" ]]; then
         printf "\033[0;32m%s" "${2}" # Green
     elif [[ ${1} == "Fail" ]]; then
@@ -40,7 +40,7 @@ terraFlag() {
     elif [[ ${1} == "System" ]]; then
         printf "\e[1;36m%s" "${2}" # B Cyan 
     elif [[ ${1} == "Help" ]]; then
-        printf "\e[1;32m%s" "${2}" # Green
+        printf "\e[1;32m%s" "${2}" # B Green
     else
         printf "\033[0m%s" "${2}" # Standard
     fi
@@ -223,7 +223,7 @@ terraDownload() {
     fi
 
     terraFlag Fail
-    curl -sSO --fail "https://releases.hashicorp.com/terraform/${1}/terraform_${1}_${2}" || terraDebugTool ERROR "FAILED TASK" "Unable to download ${2} File." leave
+    curl -sSO --connect-timeout 30 --fail "https://releases.hashicorp.com/terraform/${1}/terraform_${1}_${2}" || terraDebugTool ERROR "FAILED TASK" "Unable to download ${2} File." leave
     
     terraDebugTool Pass "END TASK" "Downloaded Terraform ${2} successful."
 }
