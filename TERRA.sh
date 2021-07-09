@@ -162,7 +162,7 @@ terraAdd() {
     terraDownload "${1}" "SHA256SUMS"
 
     sha256sum -c --ignore-missing --status "terraform_${1}_SHA256SUMS" || terraDebugTool ERROR "CHECK TASK" "Sha256sum did not match!" leave
-    terraDebugTool Pass "CHECK TASK" "Sha256sum pessed."
+    terraDebugTool Pass "CHECK TASK" "Sha256sum passed."
 
     if [[ ! -d /usr/local/terraform/${1} ]]; then
         terraDebugTool Change "CREATE TASK" "/usr/local/terraform/${1} directory.\n"
@@ -199,7 +199,7 @@ terraAdd() {
 
     terraDebugTool Change "UNZIP TASK" "Extract files from terraform_${1}_linux_amd64.zip.\n"
     terraFlag Change
-    sudo unzip -o "terraform_${1}_linux_amd64.zip" -d "/usr/local/terraform/${1}/" 1> /dev/null || terraDebugTool FERRORail "UNZIP TASK" "Failed to extract files." leave
+    sudo unzip -o "terraform_${1}_linux_amd64.zip" -d "/usr/local/terraform/${1}/" 1> /dev/null || terraDebugTool ERROR "UNZIP TASK" "Failed to extract files." leave
     terraDebugTool Pass "UNZIP TASK" "Files from terraform_${1}_linux_amd64.zip extraction successful."
 
     terraDebugTool Change "REMOVE TASK" "Remove unwanted files."
