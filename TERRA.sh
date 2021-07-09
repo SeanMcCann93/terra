@@ -518,7 +518,7 @@ else
     terraDebugTool Fail "TERRA ACTION" "not found."
     terraLogo
     printf "Welcome to terra, this tool has been developed to enable users a\nclean way to navigate Terraform versions within a Linux system.\n\nIf you wish to take advantage of this tool, please use "
-    terraDebugTool Help "-h]" "or "
+    terraDebugTool Help "-h" "or "
     printf "\n"
     terraDebugTool Help "--Help"
     printf "for a list of actionable commands. Incorporate them with \nterra to perform actions in a single action. \n"
