@@ -6,7 +6,16 @@ To use this, follow the setup instructions bellow.
 
 ### Setup
 
-> `git clone https://github.com/SeanMcCann93/terra.git && cd ./terra && bash addTERRA.sh && cd ./.. && rm -rf ./terra && terra`
+Copy and paist this code.
+
+```
+git clone https://github.com/SeanMcCann93/terra.git \
+&& cd ./terra \
+&& bash addTERRA.sh \
+&& cd ./.. \
+&& rm -rf ./terra \
+&& terra
+```
 
 The above will install 'terra' as an executable. Try 'terra -h' for a list of actionable commands.  
 
