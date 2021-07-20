@@ -26,23 +26,23 @@ fi
 
 terraFlag() {
     if [[ ${1} == "ERROR" ]]; then
-        printf "\e[1;31m%s" "${2}" #Red
+        printf "\\e[1;31m%s" "${2}" # Bold Red
     elif [[ ${1} == "Pass" ]]; then
-        printf "\033[0;32m%s" "${2}" # Green
+        printf "\\033[0;32m%s" "${2}" # Green
     elif [[ ${1} == "Fail" ]]; then
-        printf "\e[0;31m%s" "${2}" # Red
+        printf "\\e[0;31m%s" "${2}" # Red
     elif [[ ${1} == "Change" ]]; then
-        printf "\033[0;33m%s" "${2}" # Yellow
-    elif [[ ${1} == "Unchange" ]]; then
-        printf "\e[0;95m%s" "${2}" # Purple
+        printf "\\033[0;33m%s" "${2}" # Yellow
+    elif [[ ${1} == "Nochange" ]]; then
+        printf "\\e[0;95m%s" "${2}" # Purple
     elif [[ ${1} == "Active" ]]; then
-        printf "\e[1;94m%s" "${2}" # High Intent Blue
+        printf "\\e[1;94m%s" "${2}" # High Intent Blue
     elif [[ ${1} == "System" ]]; then
-        printf "\e[1;36m%s" "${2}" # B Cyan 
+        printf "\\e[1;36m%s" "${2}" # B Cyan 
     elif [[ ${1} == "Help" ]]; then
-        printf "\e[1;32m%s" "${2}" # Green
+        printf "\\e[1;32m%s" "${2}" # Bold Green
     else
-        printf "\033[0m%s" "${2}" # Standard
+        printf "\\033[0m%s" "${2}" # Standard
     fi
 }
 
@@ -50,7 +50,7 @@ terraDebugTool() {
     if [[ $terraDebug == "true" ]] || [[ $1 == "ERROR" ]]; then
         terraFlag "${1}" "[${2}]"
         terraFlag None " ${3}"
-        printf "\n\n"
+        printf "\\n \\n"
     elif [[  $1 == "Help"  ]]; then
         terraFlag "${1}" "[${2}]"
         terraFlag None " ${3}"
@@ -93,15 +93,15 @@ terraLogo() {
         cat <<EOF
 
     __________________________________________    _____ 
-    \__    ___/\_   _____/\______   \______   \  /  _  \   
-      |    |    |    __)_  |       _/|       _/ /  /_\  \  
-      |    |    |        \ |    |   \|    |   \/    |    \ 
-      |____|   /_______  / |____|_  /|____|_  /\____|__  / 
-                       \/         \/        \/         \/  
+    \\__    ___/\\_   _____/\\______   \\______   \\  /  _  \\   
+      |    |    |    __)_  |       _/|       _/ /  /_\\  \\  
+      |    |    |        \\ |    |   \\|    |   \\/    |    \\ 
+      |____|   /_______  / |____|_  /|____|_  /\\____|__  / 
+                       \\/         \\/        \\/         \\/  
 
 EOF
     else
-        terraDebugTool Unchange "LOGO TASK" "'terraLogoDisp' Variable is false, Skip logo display."
+        terraDebugTool Nochange "LOGO TASK" "'terraLogoDisp' Variable is false, Skip logo display."
     fi
 }
 
@@ -109,40 +109,40 @@ terraHelp() {
     printf "terra "
     terraDebugTool Help "Action"
     terraFlag Change "[Version] "
-    terraFlag Unchange "[Instruction]"
-    printf "\n\n"
+    terraFlag Nochange "[Instruction]"
+    printf "\\n \\n"
 
     terraDebugTool Help "-s" "or "
     terraDebugTool Help "--set" "can be used to make the desired version active. "
     terraFlag Change "[Version]"
     terraFlag None " can be included. "
-    terraFlag Unchange "[-v]"
+    terraFlag Nochange "[-v]"
     terraFlag None " or "
-    terraFlag Unchange "[--version]"
+    terraFlag Nochange "[--version]"
     terraFlag None " will print the version."
-    printf "\n\n"
+    printf "\\n \\n"
 
     terraDebugTool Help "-a" "or "
     terraDebugTool Help "--add" "can be used to install the desired version. "
     terraFlag Change "[Version]"
     terraFlag None " can be included. " 
-    terraFlag Unchange "[-y]"
+    terraFlag Nochange "[-y]"
     terraFlag None " will force overwite if already available."
-    printf "\n\n"
+    printf "\\n \\n"
     
     terraDebugTool Help "-d" "or "
     terraDebugTool Help "--del" "can be used to fully remove the desired version and folder. "
     terraFlag Change "[Version]"
     terraFlag None " can be included."
-    printf "\n\n"
+    printf "\\n \\n"
     
     terraDebugTool Help "-l" "or "
     terraDebugTool Help "--list" "is used to display all versions currently available."
-    printf "\n\n"
+    printf "\\n \\n"
     
     terraDebugTool Help "-v" "or "
     terraDebugTool Help  "--version" "is used to display all versions currently available."
-    printf "\n\n"
+    printf "\\n \\n"
 }
 
 terraLeave() {
@@ -159,23 +159,22 @@ terraAdd() {
     terraDebugTool Change "START TASK" "Add Terraform ${1}."
 
     terraDownload "${1}" "linux_amd64.zip"
-    terraDownload "${1}" "SHA256SUMS"
+    terraDownload "${1}" "SHA256SUMS" 
 
     sha256sum -c --ignore-missing --status "terraform_${1}_SHA256SUMS" || terraDebugTool ERROR "CHECK TASK" "Sha256sum did not match!" leave
     terraDebugTool Pass "CHECK TASK" "Sha256sum passed."
 
     if [[ ! -d /usr/local/terraform/${1} ]]; then
-        terraDebugTool Change "CREATE TASK" "/usr/local/terraform/${1} directory.\n"
+        terraDebugTool Change "CREATE TASK" "/usr/local/terraform/${1} directory.\\n"
         sudo mkdir -p "/usr/local/terraform/${1}"
     else
-        terraDebugTool Unchange "CREATE TASK" "Directory at /usr/local/terraform/${1} found."
-        while true; do
-                if [[ ${2} == "-y" ]]; then
-                    yn="y"
-                    terraDebugTool Pass "CREATE TASK" "Prompt to overwrite skipped."
-                else
-                    read -r -p "Do you wish to overwrite this directory (Y/N)? " yn # Optional Pull of git changes
-                fi
+        terraDebugTool Nochange "CREATE TASK" "Directory at /usr/local/terraform/${1} found."
+        if [[ ${2} == "-y" ]]; then
+            yn="y"
+            terraDebugTool Pass "CREATE TASK" "Prompt to overwrite skipped."
+        else
+            while true; do
+                read -r -p "Do you wish to overwrite this directory (Y/N)? " yn # Optional Pull of git changes
                 case $yn in
                     [Yy]* ) 
                         terraDebugTool Change "CREATE TASK" "Set to overwite /usr/local/terraform/${1} directory."
@@ -188,16 +187,17 @@ terraAdd() {
                     * ) echo "Please answer with 'y' or 'n'.";;
                 esac
             done
+        fi
     fi
 
     if [[ "$(unzip -v 2>/dev/null)" = "" ]]; then
         terraDebugTool Fail "REQUIRED" "Unzip not found, forcing install to release .zip packages."
         installUnzip
     else
-        terraDebugTool Pass "REQUIRED" "Unzip installed.\n"
+        terraDebugTool Pass "REQUIRED" "Unzip installed.\\n"
     fi
 
-    terraDebugTool Change "UNZIP TASK" "Extract files from terraform_${1}_linux_amd64.zip.\n"
+    terraDebugTool Change "UNZIP TASK" "Extract files from terraform_${1}_linux_amd64.zip.\\n"
     terraFlag Change
     sudo unzip -o "terraform_${1}_linux_amd64.zip" -d "/usr/local/terraform/${1}/" 1> /dev/null || terraDebugTool ERROR "UNZIP TASK" "Failed to extract files." leave
     terraDebugTool Pass "UNZIP TASK" "Files from terraform_${1}_linux_amd64.zip extraction successful."
@@ -224,7 +224,7 @@ terraDownload() {
 
     terraFlag Fail
     curl -sSO --fail "https://releases.hashicorp.com/terraform/${1}/terraform_${1}_${2}" || terraDebugTool ERROR "FAILED TASK" "Unable to download ${2} File." leave
-    
+    terraFlag None
     terraDebugTool Pass "END TASK" "Downloaded Terraform ${2} successful."
 }
 
@@ -236,7 +236,7 @@ terraInstall() {
     terraDebugTool Change "INSTALL TASK" "Applying Terraform ${1} to activatable stack."
     terraFlag Change
     sudo update-alternatives --install /usr/local/bin/terraform terraform /usr/local/terraform/"${1}"/terraform "${PRIORITY}" || terraDebugTool ERROR "FAILED TASK" "Unable to install Terraform ${1}." leave
-    
+    terraFlag None
     terraDebugTool Pass "END TASK" "Install Terraform ${1} successful."
 }
 
@@ -282,7 +282,7 @@ terraDebugTool System "START TERRA" "Create list, passed."
 terraList() {
     terraDebugTool Change "START TASK" "Gather a list of available versions."
 
-    terraDebugTool Unchange "LIST TASK" "Get number of files in directory."
+    terraDebugTool Nochange "LIST TASK" "Get number of files in directory."
     dirNum=${#dirList[@]}
     terraDebugTool Change "LIST TASK" "Reduce value."
     dirNum=$(((dirNum - 1)))
@@ -299,9 +299,9 @@ terraList() {
                 printf "%s" "${dirList[${c}]}"
             fi
             if [[ $c != "$dirNum" ]]; then
-                printf "\n"
+                printf "\\n"
             else
-                printf "\n\n"
+                printf "\\n \\n"
             fi
     done
 
@@ -338,18 +338,18 @@ terraSet() {
             setFlag="Change"
         elif terraform --version -json | grep "${terraSaved}" &> /dev/null; then
             terraDebugTool Active "SET TASK" "Version is already active."
-            setFlag="Unchange"
+            setFlag="Nochange"
         else
             setFlag="Pass"
         fi
 
-        if [[  $setFlag !=  "Unchange" ]]; then
+        if [[  $setFlag !=  "Nochange" ]]; then
             terraDebugTool "${setFlag}" "SET TASK" "Set to Terraform ${1}."
             sudo update-alternatives --set terraform "/usr/local/terraform/${1}/terraform" &> /dev/null || terraDebugTool ERROR "SET TASK" "To ${1} was not Successful." leave
         fi
     fi
     if [[  $2 == -v  ]] || [[  $2 == --version  ]]; then
-        terraDebugTool Unchange "SET TASK" "Version request found."
+        terraDebugTool Nochange "SET TASK" "Version request found."
         terraVersion
     fi
     terraDebugTool Pass "END TASK" "Set Terraform ${1} successful."
@@ -395,16 +395,16 @@ terraDebugTool System "START TERRA" "Delete list, passed."
 
 if [[ ! -d /usr/local/terraform  ]]; then
     terraDebugTool Help "SETUP TERRA" "'/usr/local/terraform' directory created to store Terraform versions."
-    printf "\n\n"
+    printf "\\n \\n"
     sudo mkdir /usr/local/terraform
     if [[ -z $terraAction ]]; then 
         terraLogo
         terraDebugTool Help "Welcome" "Terra is here to help you navigate Terraform Versions, bellow are a set of tools available."
-        printf "\n\n"
+        printf "\\n \\n"
         terraHelp
         terraDebugTool Help "-h" "or "
         terraDebugTool Help "--help" "is used to display this list again."
-        printf "\n"
+        printf "\\n \\n"
         terraLeave
     fi
 fi
@@ -412,19 +412,19 @@ fi
 if [[ $terraAction == "-s" ]] || [[ $terraAction == "--set" ]]; then
     terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
     if [[ -z $terraSaved ]]; then
-        terraDebugTool Unchange "TERRA SET" "Version value not present."
+        terraDebugTool Nochange "TERRA SET" "Version value not present."
         terraLogo
         while true; do
             read -r -p "Please enter the Terraform version: " terraSaved terraInstruction
             case $terraSaved in
                 '' ) 
-                    terraDebugTool Unchange "TERRA SET" "Value entered is '${terraSaved}'."
-                    printf "\nA value must exist! Use \e[1;32mhelp\033[0m if you require assistance.\n\n";;
+                    terraDebugTool Nochange "TERRA SET" "Value entered is '${terraSaved}'."
+                    printf "\\nA value must exist! Use \\e[1;32mhelp\\033[0m if you require assistance.\\n \\n";;
                 help )
-                    terraDebugTool Unchange "TERRA SET" "Display '${terraSaved}' for terraSet."
-                    printf "\nAvailable versions to set:\n\n"
+                    terraDebugTool Nochange "TERRA SET" "Display '${terraSaved}' for terraSet."
+                    printf "\\nAvailable versions to set:\\n \\n"
                     terraList
-                    printf "To Set a version it must first be installed. A list of\nversions that can be installed are found at:\n\n    \e[1;32mhttps://releases.hashicorp.com/terraform\033[0m    \n\nFind the desired version and input its version number here.\n\nExample: '\033[0;33m0.00.00\033[0m'\n\nUse \e[0;95m-v\033[0m or \e[0;95m--version\033[0m to display the version readout once set.\n\n";;
+                    printf "To Set a version it must first be installed. A list of\\nversions that can be installed are found at:\\n \\n    \\e[1;32mhttps://releases.hashicorp.com/terraform\\033[0m    \\n \\nFind the desired version and input its version number here.\\n \\nExample: '\\033[0;33m0.00.00\\033[0m'\\n \\nUse \\e[0;95m-v\\033[0m or \\e[0;95m--version\\033[0m to display the version readout once set.\\n \\n";;
                 exit ) 
                     echo
                     terraDebugTool ERROR STOPPED "Aborted by user." leave;;
@@ -445,11 +445,11 @@ elif [[ $terraAction == "-a" ]] || [[ $terraAction == "--add" ]]; then
             read -r -p "Please enter the Terraform version: " terraSaved terraInstruction
             case $terraSaved in
                 '' ) 
-                    terraDebugTool Unchange "TERRA ADD" "Value entered is '${terraSaved}'."
-                    printf "\nA value must exist! Use \e[1;32mhelp\033[0m if you require assistance.\n\n";;
+                    terraDebugTool Nochange "TERRA ADD" "Value entered is '${terraSaved}'."
+                    printf "\\nA value must exist! Use \\e[1;32mhelp\\033[0m if you require assistance.\\n \\n";;
                 help )
-                    terraDebugTool Unchange "TERRA ADD" "Display '${terraSaved}' for terraAdd."
-                    printf "\nTo take advantage of this application it helps to know what\nversions are available. A list of versions can be found at:\n\n    \e[1;32mhttps://releases.hashicorp.com/terraform\033[0m    \n\nFind the desired version and input its version number here.\n\nExample: '\033[0;33m0.00.00\033[0m'\n\nUse \e[0;95m-y\033[0m to force overwire if applicable.\n\n";; # Made By Sean David McCann
+                    terraDebugTool Nochange "TERRA ADD" "Display '${terraSaved}' for terraAdd."
+                    printf "\\nTo take advantage of this application it helps to know what\\nversions are available. A list of versions can be found at:\\n \\n    \\e[1;32mhttps://releases.hashicorp.com/terraform\\033[0m    \\n \\nFind the desired version and input its version number here.\\n \\nExample: '\\033[0;33m0.00.00\\033[0m'\\n \\nUse \\e[0;95m-y\\033[0m to force overwire if applicable.\\n \\n";; # Made By Sean David McCann
                 exit ) 
                     echo
                     terraDebugTool ERROR STOPPED "Aborted by user." leave;;
@@ -470,11 +470,11 @@ elif [[ $terraAction == "-d" ]] || [[ $terraAction == "--del" ]]; then
             read -r -p "Please enter the Terraform version: " terraSaved
             case $terraSaved in
                 '' ) 
-                    terraDebugTool Unchange "TERRA DELETE" "Value entered is '${terraSaved}'."
-                    printf "A value must exist! Use \e[1;32mhelp\033[0m if you require assistance.\n";;
+                    terraDebugTool Nochange "TERRA DELETE" "Value entered is '${terraSaved}'."
+                    printf "A value must exist! Use \\e[1;32mhelp\\033[0m if you require assistance.\\n";;
                 help )
-                    terraDebugTool Unchange "TERRA DELETE" "Display '${terraSaved}' for terraDelete."
-                    printf "\nPlease see bellow a list of versions available to delete.\n\n"
+                    terraDebugTool Nochange "TERRA DELETE" "Display '${terraSaved}' for terraDelete."
+                    printf "\\nPlease see bellow a list of versions available to delete.\\n \\n"
                     terraList;;
                 exit ) 
                     echo
@@ -486,7 +486,7 @@ elif [[ $terraAction == "-d" ]] || [[ $terraAction == "--del" ]]; then
         done
     fi
     terraDelete "$terraSaved"
-    terraDebugTool Pass "TERRA DELETE" "Complete.\n"
+    terraDebugTool Pass "TERRA DELETE" "Complete.\\n"
 elif [[ $terraAction == "-l" ]] || [[ $terraAction == "--list" ]]; then
     terraDebugTool Pass "TERRA ACTION" "${terraAction} used."
     terraLogo
@@ -515,13 +515,13 @@ elif [[ $terraAction == "--logo-toggle" ]]; then
     fi
     terraDebugTool Pass "TERRA LOGO-DISPLAY" "Complete."
 else
-    terraDebugTool Fail "TERRA ACTION" "not found."
+    terraDebugTool Fail "TERRA ACTION" "not found. Run Terra Welcome"
     terraLogo
-    printf "Welcome to terra, this tool has been developed to enable users a\nclean way to navigate Terraform versions within a Linux system.\n\nIf you wish to take advantage of this tool, please use "
+    printf "Welcome to terra, this tool has been developed to enable users a\\nclean way to navigate Terraform versions within a Linux system.\\n \\nIf you wish to take advantage of this tool, please use "
     terraDebugTool Help "-h" "or "
-    printf "\n"
+    printf "\\n"
     terraDebugTool Help "--Help"
-    printf "for a list of actionable commands. Incorporate them with \nterra to perform actions in a single action. \n"
+    printf "for a list of actionable commands. Incorporate them with \\nterra to perform actions in a single action. \\n"
     terraDebugTool Pass "TERRA WELCOME" "Complete."
 fi
 terraDebugTool System "END TERRA" "Good Bye"
